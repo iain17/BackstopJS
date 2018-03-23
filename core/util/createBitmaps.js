@@ -136,7 +136,9 @@ function delegateScenarios (config) {
       return pMap(scenarioViews, runChromy, {concurrency: asyncCaptureLimit});
     });
   } else if (/puppe./i.test(config.engine)) {
-    return pMap(scenarioViews, runPuppet, {concurrency: asyncCaptureLimit});
+    return runPuppet.init().then(() => {
+      return pMap(scenarioViews, runPuppet.run, {concurrency: asyncCaptureLimit})
+    });
   } else {
     logger.error('Engine not known to Backstop!');
   }
@@ -198,6 +200,10 @@ module.exports = function (config, isReference) {
 
     if (/chrom./i.test(config.engine)) {
       promise.then(() => Chromy.cleanup());
+    }
+
+    if (/puppe./i.test(config.engine)) {
+      promise.then(() => runPuppet.cleanup());
     }
 
     return promise; 

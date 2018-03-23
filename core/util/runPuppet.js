@@ -18,8 +18,22 @@ const BODY_SELECTOR = 'body';
 const DOCUMENT_SELECTOR = 'document';
 const NOCLIP_SELECTOR = 'body:noclip';
 const VIEWPORT_SELECTOR = 'viewport';
+var browser = null;
 
-module.exports = function (args) {
+async function init() {
+  console.log('set browser')
+  browser = await puppeteer.launch({
+    ignoreHTTPSErrors: true
+  });
+}
+
+async function cleanup() {
+  if(browser) {
+    return browser.close();
+  }
+}
+
+function run(args) {
   const scenario = args.scenario;
   const viewport = args.viewport;
   const config = args.config;
@@ -30,7 +44,6 @@ module.exports = function (args) {
 
   return processScenarioView(scenario, variantOrScenarioLabelSafe, scenarioLabelSafe, viewport, config, runId, assignedPort);
 };
-
 
 async function processScenarioView (scenario, variantOrScenarioLabelSafe, scenarioLabelSafe, viewport, config, runId) {
   if (!config.paths) {
@@ -46,8 +59,10 @@ async function processScenarioView (scenario, variantOrScenarioLabelSafe, scenar
 
   const VP_W = viewport.width || viewport.viewport.width;
   const VP_H = viewport.height || viewport.viewport.height;
+  if(!browser) {
+    throw "Whaoah";
+  }
 
-  const browser = await puppeteer.launch({ignoreHTTPSErrors: true});
   const page = await browser.newPage();
 
   page.setViewport({width: VP_W, height: VP_H});
@@ -299,11 +314,11 @@ function delegateSelectors (page, browser, scenario, viewport, variantOrScenario
     };
     next();
   }).then(function () {
-    console.log(chalk.green('x Close Browser'));
-    return browser.close();
+    console.log(chalk.green('x Close Page'));
+    return page.close();
   }).catch(function (err) {
     console.log(chalk.red(err));
-    browser.close();
+    page.close();
   }).then(_ => compareConfig);
 }
 
@@ -344,3 +359,4 @@ async function captureScreenshot (page, browser, selector, selectorMap, config, 
     resolve();
   });
 }
+module.exports = {init, run, cleanup};
