@@ -23,7 +23,8 @@ var browser = null;
 async function init() {
   console.log('set browser')
   browser = await puppeteer.launch({
-    ignoreHTTPSErrors: true
+    ignoreHTTPSErrors: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
 }
 

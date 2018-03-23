@@ -29,6 +29,7 @@ RUN apt-get install -y firefox-esr
 
 WORKDIR /src
 COPY . /src
-RUN npm install -g /src
+RUN npm install
+RUN npm install -g --no-optional ./
 
 ENTRYPOINT ["backstop"]
