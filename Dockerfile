@@ -1,12 +1,9 @@
-FROM node:8.5.0
-
-ARG BACKSTOPJS_VERSION
+FROM node:8.10.0
 
 ENV \
 	PHANTOMJS_VERSION=2.1.7 \
 	CASPERJS_VERSION=1.1.4 \
 	SLIMERJS_VERSION=0.10.3 \
-	BACKSTOPJS_VERSION=$BACKSTOPJS_VERSION \
 	# Workaround to fix phantomjs-prebuilt installation errors
 	# See https://github.com/Medium/phantomjs/issues/707
 	NPM_CONFIG_UNSAFE_PERM=true
