@@ -11,8 +11,8 @@ const CHROMY_STARTING_PORT_NUMBER = 9222;
 const DEFAULT_FILENAME_TEMPLATE = '{configId}_{scenarioLabel}_{selectorIndex}_{selectorLabel}_{viewportIndex}_{viewportLabel}';
 const DEFAULT_BITMAPS_TEST_DIR = 'bitmaps_test';
 const DEFAULT_BITMAPS_REFERENCE_DIR = 'bitmaps_reference';
-const SELECTOR_NOT_FOUND_PATH = '/capture/resources/selectorNotFound_noun_164558_cc.png';
-const HIDDEN_SELECTOR_PATH = '/capture/resources/hiddenSelector_noun_63405.png';
+const SELECTOR_NOT_FOUND_PATH = '/capture/resources/notFound.png';
+const HIDDEN_SELECTOR_PATH = '/capture/resources/notVisible.png';
 const BODY_SELECTOR = 'body';
 const DOCUMENT_SELECTOR = 'document';
 const NOCLIP_SELECTOR = 'body:noclip';
@@ -370,7 +370,9 @@ function delegateSelectors (chromy, scenario, viewport, variantOrScenarioLabelSa
         fileName: fileName,
         label: scenario.label,
         requireSameDimensions: requireSameDimensions,
-        misMatchThreshold: engineTools.getMisMatchThreshHold(scenario, config)
+        misMatchThreshold: engineTools.getMisMatchThreshHold(scenario, config),
+        url: scenario.url,
+        referenceUrl: scenario.referenceUrl
       });
     }
 

@@ -12,8 +12,8 @@ const TEST_TIMEOUT = 60000;
 const DEFAULT_FILENAME_TEMPLATE = '{configId}_{scenarioLabel}_{selectorIndex}_{selectorLabel}_{viewportIndex}_{viewportLabel}';
 const DEFAULT_BITMAPS_TEST_DIR = 'bitmaps_test';
 const DEFAULT_BITMAPS_REFERENCE_DIR = 'bitmaps_reference';
-const SELECTOR_NOT_FOUND_PATH = '/capture/resources/selectorNotFound_noun_164558_cc.png';
-const HIDDEN_SELECTOR_PATH = '/capture/resources/hiddenSelector_noun_63405.png';
+const SELECTOR_NOT_FOUND_PATH = '/capture/resources/notFound.png';
+const HIDDEN_SELECTOR_PATH = '/capture/resources/notVisible.png';
 const BODY_SELECTOR = 'body';
 const DOCUMENT_SELECTOR = 'document';
 const NOCLIP_SELECTOR = 'body:noclip';
@@ -60,9 +60,6 @@ async function processScenarioView (scenario, variantOrScenarioLabelSafe, scenar
 
   const VP_W = viewport.width || viewport.viewport.width;
   const VP_H = viewport.height || viewport.viewport.height;
-  if(!browser) {
-    throw "Whaoah";
-  }
 
   const page = await browser.newPage();
 
@@ -100,7 +97,7 @@ async function processScenarioView (scenario, variantOrScenarioLabelSafe, scenar
   }
 
   //  --- OPEN URL ---
-  var url = scenario.url;
+  var url = translateUrl(scenario.url);
   if (isReference && scenario.referenceUrl) {
     url = scenario.referenceUrl;
   }
@@ -116,7 +113,7 @@ async function processScenarioView (scenario, variantOrScenarioLabelSafe, scenar
     await page.waitForFunction(() => {
       return window._backstopTools.hasLogged(window._readyEvent);
     });
-      
+
     await page.evaluate(_ => console.info('readyEvent ok'));
   }
 
@@ -149,7 +146,7 @@ async function processScenarioView (scenario, variantOrScenarioLabelSafe, scenar
         })
       );
     }
-    
+
     await removeSelectors();
   }
 
@@ -319,10 +316,9 @@ function delegateSelectors (page, browser, scenario, viewport, variantOrScenario
     return page.close();
   }).catch(function (err) {
     console.log(chalk.red(err));
-    page.close();
+    return page.close();
   }).then(_ => compareConfig);
 }
-
 
 async function captureScreenshot (page, browser, selector, selectorMap, config, selectors) {
   let filePath
@@ -339,17 +335,25 @@ async function captureScreenshot (page, browser, selector, selectorMap, config, 
     // OTHER-SELECTOR screenshot
     const selectorShot = async (s, path) => {
       const el = await page.$(s)
-      await el.screenshot({
-        path: path
-      })
+      if (el) {
+        await el.screenshot({
+          path: path
+        })
+      } else {
+        console.log(chalk.red(`Element not found for capuring: ${s}`));
+      }
     }
-    
+
     const selectorsShot = async () => {
       return Promise.all(
-        selectors.map(async s => { 
+        selectors.map(async s => {
           filePath = selectorMap[s].filePath;
           ensureDirectoryPath(filePath);
-          await selectorShot(s, filePath);
+          try {
+            await selectorShot(s, filePath);
+          } catch (e) {
+            console.log(chalk.red(`Error capturing Element ${s}`), e);
+          }
         })
       );
     }
@@ -360,4 +364,17 @@ async function captureScreenshot (page, browser, selector, selectorMap, config, 
     resolve();
   });
 }
+
+// handle relative file name
+function translateUrl (url) {
+  const RE = new RegExp('^[./]');
+  if (RE.test(url)) {
+    const fileUrl = 'file://' + path.join(process.cwd(), url);
+    console.log('Relative filename detected -- translating to ' + fileUrl);
+    return fileUrl;
+  } else {
+    return url;
+  }
+}
+
 module.exports = {init, run, cleanup};

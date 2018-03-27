@@ -122,9 +122,9 @@ function delegateScenarios (config) {
       });
     });
   });
-  
+
   const asyncCaptureLimit = config.asyncCaptureLimit === 0 ? 1 : config.asyncCaptureLimit || CONCURRENCY_DEFAULT;
-  
+
   if (/chrom./i.test(config.engine)) {
     const PORT = (config.startingPort || CHROMY_STARTING_PORT_NUMBER);
     var getFreePorts = require('./getFreePorts');
@@ -135,7 +135,7 @@ function delegateScenarios (config) {
       });
       return pMap(scenarioViews, runChromy, {concurrency: asyncCaptureLimit});
     });
-  } else if (/puppe./i.test(config.engine)) {
+  } else if (config.engine.startsWith('puppet')) {
     return runPuppet.init().then(() => {
       return pMap(scenarioViews, runPuppet.run, {concurrency: asyncCaptureLimit})
     });
@@ -202,11 +202,7 @@ module.exports = function (config, isReference) {
       promise.then(() => Chromy.cleanup());
     }
 
-    if (/puppe./i.test(config.engine)) {
-      promise.then(() => runPuppet.cleanup());
-    }
-
-    return promise; 
+    return promise;
   }
 
   return writeReferenceCreateConfig(config, isReference).then(function () {
